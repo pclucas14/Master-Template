@@ -19,9 +19,12 @@
 \newcommand\mynotesEB[1]{\textcolor{red}{#1}}
 \setlength{\marginparwidth}{3cm}
 \usepackage{amssymb,todonotes}
+\usepackage{wrapfig}
 
 
-\title{Online Learned Continual Compression via Stacked Quantization Modules}
+
+\title{Online Learned Continual Compression}
+%via Stacked Quantization Modules}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
@@ -65,7 +68,7 @@ Address \\
 \maketitle
 
 \begin{abstract}
-We \mynotesEB{introduce} and study the problem of Online Continual Compression, where an agent learns to compress a non i.i.d data stream. We propose a new architecture which stacks Quantization Modules (SQM), consisting of a discrete autoencoder equipped with a tiny episodic memory. Every added module is trained to reconstruct the latent space of the previous module using fewer bits, allowing the learned representation to become more compact as training progresses. This modularity has several advantages: 1) moderate compressions are quickly available early in training, which is crucial for remembering the early tasks, 2) as more data needs to be stored, earlier data becomes more compressed, freeing memory, 3) unlike previous methods, our approach \textit{does not require pretraining}, even on challenging datasets. We show two potential applications of this method. We first replace the episodic memory used in Experience Replay with SQM, leading to significant gains on standard CL benchmarks using a fixed memory budget. We then apply our method to LiDAR data, and show results on some downstream task.
+We introduce and study the problem of Online Continual Compression, where an agent learns to compress a non i.i.d data stream. We propose a new architecture which stacks Quantization Modules (SQM), consisting of a discrete autoencoder equipped with a tiny episodic memory. Every added module is trained to reconstruct the latent space of the previous module using fewer bits, allowing the learned representation to become more compact as training progresses. This modularity has several advantages: 1) moderate compressions are quickly available early in training, which is crucial for remembering the early tasks, 2) as more data needs to be stored, earlier data becomes more compressed, freeing memory, 3) unlike previous methods, our approach \textit{does not require pretraining}, even on challenging datasets. We show two potential applications of this method. We first replace the episodic memory used in Experience Replay with SQM, leading to significant gains on standard CL benchmarks using a fixed memory budget. We then apply our method to LiDAR data, and show results on some downstream task.
 
 \end{abstract}
 
@@ -76,7 +79,7 @@ We \mynotesEB{introduce} and study the problem of Online Continual Compression, 
 
 \section{Introduction}
 
-\subsection{Motivation for Online Continual Compression}
+%\subsection{Motivation for Online Continual Compression}
 %Intro paragraph about learned compression
 Interest in machine learning in recent years have been fueled by the plethora of data being generated on a regular basis \cite{}. Effectively storing and using this data is critical for their application. Compression can greatly reduce the storage burden in many cases and in others can reduce the memory and compute usage in downstream machine learning applications \citep{JPEG,Oyallon_2018_ECCV}. Thus learned compression has become a topic of interest \cite{VQVAE,ACN,OneMore}. On the other hand its application in reducing the size of datasets bound for machine learning applications has been limited.
 
@@ -84,7 +87,7 @@ Interest in machine learning in recent years have been fueled by the plethora of
 A relatively common situation we highlight is new training data arrives continuously for the learning algorithm to exploit, however this data might not be iid and furthermore it may not be possible to store all the data uncompressed. For example a robotic agent collecting training data might be changing its environment overtime. Similarly autonomous vehicles may collect more diverse data overtime with different objects observed in different environments. A standard learned compression algorithm \cite{torfason2018towards} being continuously learned and adapted on the incoming data is not well designed to deal with this case.  
 
 %Similarly in continual learning for classification replay is important and why not learn to compress
-In the field of continual/lifelong learning, which has for now largely focused on classification, approaches based on replay have emerged as some of the most effective. These either store small subsets of the data for later rehearsal or attempt to learn generative models of the data to permit replaying samples of previously seen data distribution\cite{MIR,ER, GenReplay}. Indeed many continual learning application would be solved with replay approaches if you could afford to store all samples. These approaches are thus inherently limited by the amount of data that can be stored in a bounded memory. On the other hand if one attempts to learn to effectively compress samples, the learned compression may itself experience forgetting. Thus a learned compression method that can learn continously would allow the storing of far larger amount of samples for replay.
+In the field of continual/lifelong learning, which has for now largely focused on classification, approaches based on replay have emerged as some of the most effective. These either store small subsets of the data for later rehearsal or attempt to learn generative models of the data to permit replaying samples of previously seen data distribution \cite{aljundi2019online,chaudhry2019continual,shin2017continual}. Indeed many continual learning application would be solved with replay approaches if you could afford to store all samples. These approaches are thus inherently limited by the amount of data that can be stored in a bounded memory. Learning a generative model can appear to be a good alternative. However learning one with modern methods, particularly in the online setting is very challenging, and can become more cumbersome a task than the primary lifelong learner. Furthermore it is itself susceptible to catastrophic forgetting\cite{aljundi2019online}. On the other hand learned compression methods are easier to learn and can converge fast compared to the lifelong learner performing classification. We note however the learned compression may itself experience forgetting. Thus a learned compression method that can learn continously would allow the storing of far larger amount of samples for replay.
 
 In this work we rely on quantized autoencoders, specifically the VQ-VAE framework \cite{VQVAE}, observing these can learn continously and online with minimal forgetting, particularly when augmented with their own internal rehearsal mechanisms. For image data we show these can be used to build a multiscale pipeline that allows the compressor to adaptively store samples at different compression scales, based on its effectiveness in compressing that sample.    
 
@@ -98,7 +101,7 @@ To summarize our contributions in this work are as follows:
 \end{itemize}
 
 
-\begin{enumerate}
+%\begin{enumerate}
 	%\item Learned Compression (in general)
 	%\begin{enumerate}
 	%	\item  Amount of data being generated on a regular basis is huge (cite article Mass was referencing). 
@@ -133,19 +136,19 @@ To summarize our contributions in this work are as follows:
 		%	\end{enumerate}
 			
 				
-		\item Deep Learning Perspective
-			\begin{enumerate}
-				\item Memory NNs / Nonparametric Approaches
-				\begin{enumerate}
-					\item GPU memory is small and limited. A major bottleneck in training models is the RAM to GPU transfer. If you are dealing with compressed representations the transfer time per example is smaller, hence makes training faster. 
-					\item This would be especially true for networks that leverage an external memory during training / inference (hence the title). 
-				\end{enumerate}		
+	%	\item Deep Learning Perspective
+	%		\begin{enumerate}
+	%			\item Memory NNs / Nonparametric Approaches
+	%			\begin{enumerate}
+	%				\item GPU memory is small and limited. A major bottleneck in training models is the RAM to GPU transfer. If you are dealing with compressed representations the transfer time per example is smaller, hence makes training faster. 
+	%				\item This would be especially true for networks that leverage an external memory during training / inference (hence the title). 
+	%			\end{enumerate}		
 
-			\end{enumerate}
+	%		\end{enumerate}
  
-\end{enumerate}
+%\end{enumerate}
 
-\todo[color=green]{finish introduction}
+%\todo[color=green]{finish introduction}
 
 
 % ---------------------------------------------------------
@@ -153,12 +156,27 @@ To summarize our contributions in this work are as follows:
 % ---------------------------------------------------------
 \section{Related Work}
 
-Closely related to our work \cite{scalable2017} consider compressing memories for use in the continual classification task. They also employ a discrete latent variable model but with the Gumbel approximation which shows to be far effective than our approach based on \cite{VQVAE}. 
+Learned compression has been recently studied in the context of images. Particularly 
+
+%SOMETHING THAT INTRODUCES THE SUBSECTIONS
+%\subsection{Continual Learning}
+\paragraph{Continual Learning}
+Current research in continual learning (CL) focuses on  in solving catastrophic forgetting (CF) in the supervised learning setting, with some limited work in the generative modeling and reinforcement learning settings. Most continual learning methods can be grouped into three major families. 
+
+Some algorithms dynamically change the model’s architecture to incorporate learning from each task separately. Popular methods are Progressive Networks \citep{rusu2016progressive}, Learning Without Forgetting \citep{li2018learning} and PathNet \citep{fernando2017pathnet}. Although these methods can perform well in practice, their introduction of task-specific weights creates growing compute and memory costs. Building online compression capabilities into these models could potentially alleviate these issues.
+
+
+An other set of techniques employ regularization to constrain weights updates in the hope of maintaining knowledge from previous tasks. Notable methods are Elastic Weight Consolidation (EWC) \citep{kirkpatrick2017overcoming,huszar2017quadratic}, Synaptic Intelligence (SI) \citep{zenke2017continual}, Variational Continual Learning \citep{nguyen2017variational}, and Riemannian Walk (RW) \citep{chaudhry2018riemannian}. 
+
+The last family of methods encapsulates all that have mechanism to store information about the previous data distributions. This \textit{memory} then serves as a tool for the continual learner to rehearse previous tasks. The simplest instantiation of this method is to keep and sample from a buffer of old data to retrain the model after every update \citep{chaudhry2019continual}. This approach is, in most cases, an hard to beat baseline. It is widely used in RL where it is known as Experience Replay (ER) \citep{lin1993reinforcement}. Another method, known as Generative Replay (GR) \citep{shin2017continual},uses generative modeling to store past tasks distributions. The continual learner then trains on generated samples to alleviate CF. Other notable examples are Gradient Episodic Memory (GEM) \citep{lopez2017gradient}, iCarl \citep{rebuffi2017icarl}, gradient-based sample selection \citep{aljundi2018Online}, Parameter Generation and Model Adaptation (PGMA) \citep{hu2018overcoming} and Maximally Interfered Retrieval (MIR) \cite{aljundi2019online}.
+
+Closely related to our work \cite{scalable2017} consider compressing memories for use in the continual classification task. They also employ a discrete latent variable model but with the Gumbel approximation which shows to be far less effective than our approach. Most notably a separate offline iid pre-training step for the learned compression is required, distinctly different from the online continual compression we consider. 
+
 \begin{enumerate}
     \item Continual Learning / CL for Robotics
     \item Quantization and Compression
     \item DGM Lidar \citep{caccia2018deep}
-    \item Online Learning ?
+  %  \item Online Learning ?
 \end{enumerate}
 
 \todo[color=green]{finish related works}
@@ -167,12 +185,12 @@ Closely related to our work \cite{scalable2017} consider compressing memories fo
 %                      Motivation & Understanding
 % ---------------------------------------------------------
 
-\section{Motivation / Why this works}
 \begin{enumerate}
-    \item Deep Generative Modeling, unlike discriminative tasks, is much harder to overfit. This allows us to do multiple iterations over the same minibatch, hence more sample efficient learning. 
-    \item VQ-VAEs learn surprisingly fast; something about learning a codebook, and having a deterministic encoding.
-    \item On that note, training modules independently leads to faster convergence. Could we show something about the variance of the gradients ? (if you train whole thing together, more params, so variance add up)
-    \item Distillation
+  %  \item Deep Generative Modeling, unlike discriminative tasks, is much harder to overfit. This allows us to do multiple iterations over the same minibatch, hence more sample efficient learning. 
+    \item Mention somewhere:VQ-VAEs learn surprisingly fast; something about learning a codebook, and having a deterministic encoding.
+%    \item On that note, training modules independently leads to faster convergence. Could we show something about the variance of the gradients ? (if you train whole thing together, more params, so variance add up)
+
+%    \item Distillation
 \end{enumerate}
 
 
@@ -180,7 +198,7 @@ Closely related to our work \cite{scalable2017} consider compressing memories fo
 %                      Approach
 % ---------------------------------------------------------
 
-\todo[color=red]{sketch out the entire Methodology section}
+%\todo[color=red]{sketch out the entire Methodology section}
 
 \todo[color=yellow]{finish Methodology section}
 
@@ -198,22 +216,28 @@ Vector Quantized Autoencoders (VQ-VAE) use a discrete latent representation inst
 
 The output of the discretization step is then fed through the decoder to recover an RGB image. The gradient of this  non-differentiable step is approximated using the straight-throught estimator. A key property to notice is that to reconstruct the input, only the $H_h \times W_h$ indices are required, since the embedding table is shared across samples. This property lies at the heart of our approach. 
 
-\subsection{Stacked Quantization Modules}
-\begin{figure}
+
+\begin{wrapfigure}[25]{L}{0.50\textwidth}
     \centering
-    \includegraphics[width=0.6\linewidth]{figs/sqm_cartoon.png}
+    \includegraphics[width=\linewidth]{figs/sqm_cartoon.png}
     \caption{dotted lines means the gradient is stopped in the backprop}
     \label{fig:soft_modules}
-\end{figure}
+\end{wrapfigure}
 
-We now describe the proposed XXXXX . Each module contains a VQ-AE and a corresponding index buffer of adaptive capacity. Its input is the $z_q^{(i-1)}$ from the previous layer. Unlike \cite{}, each module is learned greedily without backward communication between modules. This formulation is important for allowing the moudles to each converge as quickly as possible at their respective resolution, important for online continual learning.  A full diagram of the XXXX is given in Figure~\ref{fig:soft_modules}
+\subsection{Stacked Quantization Modules}
+We now describe the proposed XXXXX . Each module contains a VQ-AE and a corresponding index buffer of adaptive capacity. Its input is the $z_q^{(i-1)}$ from the previous layer. A full diagram of the XXXX is given in Figure~\ref{fig:soft_modules}. Each module reconstructs its input from latent representation $z_q^{i}$, where $\textsc{BITS}(z_q^{i}) < \textsc{BITS}(z_q^{(i-1)})$. The compression rate is given by
+$$
+    \frac{H \times W \times C \times  \log_2{(256)}}
+         {N_c \times H_h_i \times W_h_i \times \log_2{(K_i)}}
+$$
+Thus the compression rate is controlled by 3 variables : $K_i$, the number of embeddings in the codebooks of block $i$, The spatial dimension of the latent rep ($H_{hi}$, $W_{hi}$) and the number of codebooks $N_c_i$ 
 
-Each module reconstructs its input from latent representation $z_q^{i}$, where $\textsc{BITS}(z_q^{i}) < \textsc{BITS}(z_q^{(i-1)})$. The compression rate is given by
-    $$
-        \frac{H \times W \times C \times  \log_2{(256)}}
-             {N_c \times H_h_i \times W_h_i \times \log_2{(K_i)}}
-    $$
-    Thus the compression rate is controlled by 3 variables : $K_i$, the number of embeddings in the codebooks of block $i$, The spatial dimension of the latent rep ($H_{hi}$, $W_{hi}$) and the number of codebooks $N_c_i$ 
+
+Unlike \cite{}, each module is learned greedily without backward communication between modules using the current estimate of $z_q^{(i-1)}$ similar to \cite{belilovsky2019decoupled,nokland2019training}. This formulation is important for allowing the modules to each converge as quickly as possible at their respective resolution. In other words a subsequent block is not required to build representations which account for all levels of compression, thus minimizing interference across resolutions. This rapid convergence is particularly important for the case of online continual learning.  We also note since we maintain stored samples at each module and the modules are decoupled, such an approach allows to distribute training the individual modules in parallel and in an asynchronous manner \cite{belilovsky2019decoupled}.
+
+%\item Allows for faster convergence, as the bottom most block is not required to build representations which account for all levels of compression. Faster convergence translates to more knowledge being retained, as the effective capacity of the network quickly grows (b/c you can store good compressions)
+    %\item Minimizes interference. Each block receives local updates. Something along the lines that variance of the updates should be smaller as you are adding fewer random variables. Maybe make some bs link with the biologically plausible backprop, which requires "local" learning updates
+Unlike standard VQ-VAE training we do not use  exponential moving averages to update the codebook \citep{}. We found, while being more performant in reconstruction error, to be more vulnerable to drifting representations, which we want to minimize for downstream applications. We will discuss this further in the experiments. 
 %\begin{enumerate}
     %\item Its input is the $\textsc{STOP GRADIENT}(z_q^{(i-1)})$ from the previous layer. 
 %    \item Module reconstructs its input from latent representation $z_q^{i}$, where $\textsc{BITS}(z_q^{i}) < \textsc{BITS}(z_q^{(i-1)})$
@@ -226,17 +250,17 @@ Each module reconstructs its input from latent representation $z_q^{i}$, where $
 %\end{enumerate}
 
 
-\subsection{Modular Training}
-\begin{enumerate}
-    \item Allows for faster convergence, as the bottom most block is not required to build representations which account for all levels of compression. Faster convergence translates to more knowledge being retained, as the effective capacity of the network quickly grows (b/c you can store good compressions)
-    \item Minimizes interference. Each block receives local updates. Something along the lines that variance of the updates should be smaller as you are adding fewer random variables. Maybe make some bs link with the biologically plausible backprop, which requires "local" learning updates
-    \item TODO: would allow fully in parallel and asynchronous training, could even rehearse on different points (link to MIR)
+%\subsection{Modular Training}
+%\begin{enumerate}
+    %\item Allows for faster convergence, as the bottom most block is not required to build representations which account for all levels of compression. Faster convergence translates to more knowledge being retained, as the effective capacity of the network quickly grows (b/c you can store good compressions)
+    %\item Minimizes interference. Each block receives local updates. Something along the lines that variance of the updates should be smaller as you are adding fewer random variables. Maybe make some bs link with the biologically plausible backprop, which requires "local" learning updates
+   % \item TODO: would allow fully in parallel and asynchronous training, could even rehearse on different points (link to MIR)
     
-    \item TODO: (maybe put this somewhere else). Regular VQ-VAEs usually use exponential moving averages to update the codebook. However we found this optimization, while being more performant in reconstruction error, to be more vulnerable to drifting representations. (See ablation study)
+   % \item TODO: (maybe put this somewhere else). Regular VQ-VAEs usually use exponential moving averages to update the codebook. However we found this optimization, while being more performant in reconstruction error, to be more vulnerable to drifting representations. (See ablation study)
 
     
     
-\end{enumerate}
+%\end{enumerate}
 
 \subsection{Multi-Level Storage}
 The Hierarchical part  serves two purposes
@@ -264,52 +288,45 @@ With this motivation, we wish to adapt RS to a multi-level settings. There a a f
 
 %               TRAINING LOOP 
 % ---------------------------------------------------------
-\begin{minipage}{0.99\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minipage}{0.49\textwidth}
 \begin{algorithm2e}[H]\small
 \SetAlgoLined
   \DontPrintSemicolon
     \KwIn{Learning rates $\alpha_{cls}$, $\alpha_{ae}$ }
  \textbf{Initialize:} Memory $\mathcal{M}$; $\theta_{cls}$, $\theta_{ae}$ \\
 \For{$t \in 1..T$}{
-
     \,\,\,\texttt{\% Fetch data from current task}\\
     \For{$B_{inc}\sim D_t$}{
-    
-        \,\,\,\texttt{\% Perform multiple passes over the incoming batch}\\
+     %   \,\,\,\texttt{\% Perform multiple passes over the incoming batch}\\
         \For{$n \in 1..N$}{
             $B \gets B_{inc}$ \\
             \If{$t > 1$}{
             
-                \,\,\,\texttt{\% Fetch data from previous tasks}\\
+                \,\,\,\texttt{\% Fetch data from buffer}\\
                 $B_{re}$ \sim \textsc{Sample}({M})\\
-                $B$ \gets (($B_{inc}$, $B_{re}$)) \\
+                $B \gets (B_{inc}, B_{re}))$ \\
             }
-            
             \,\,\,\texttt{\% Train Compressor Network}\\
             \theta_{gen} \gets ADAM(B, \alpha_{ae})$ \\
-            
-            \,\,
-            \If{$ t > 1$}{
+            \If{$t > 1$}{
                 \textsc{Update Buffer}(M, \theta_{ae}) \\
             }
-
         \,\,\,\texttt{\%Save current latent indices}\\
-        \textsc{ADD TO MEMORY}({M}, $B_{inc}$, \theta_{ae})\\
-        
+        \textsc{ADD TO MEMORY}(${M}, B_{inc}, \theta_{ae}$)\\
         }
     }
 }
 
-\caption{ Multi-Level Vector Quantized Replay}
+\caption{ SQM Replay}
 \label{algo:vqr}
    % \end{edit}
 \end{algorithm2e}
 \end{minipage}
-
-
+\qquad
 %           Find Most Compact Representation 
 % ------------------------------------------------------
-\begin{minipage}{0.99\textwidth}
+\begin{minipage}{0.49\textwidth}
 \begin{algorithm2e}[H]\small
 \SetAlgoLined
   \DontPrintSemicolon
@@ -331,25 +348,50 @@ With this motivation, we wish to adapt RS to a multi-level settings. There a a f
         $z_q$ = \textst{DECODE}($block_j$, $z_q$)
     }
     
-    \,\,\,\texttt{\% Compute distortion between both images} \\
-    err = \textst{MSE}($\tilde{x}$, $z_q$)
+    \,\,\,\texttt{\% Compute error between both images} \\
+    err = \textst{MSE}($x$, $z_q$)
     
     \,\,
     \If{$err < d_{th}$}{
         \textbf{return} argmin$_i$, \ $i$
     }
 }
-
 \,\,\,\texttt{\% If no compression is good enough, return original image} \\
 \textbf{return} $x$, 0
-
-
- 
- \caption{\textst{AdapCompress}: Find Compact Representation}
+\caption{\textst{AdaptiveCompress}}
 \label{algo:vqr}
    % \end{edit}
 \end{algorithm2e}
 \end{minipage}
+\end{minipage}
+
+
+%          End of Algorithms Section 
+% ------------------------------------------------------
+
+
+
+
+\subsection{Representation used for LiDAR}
+\begin{itemize}
+    \item describe padding for rotational equivariance
+\end{itemize}
+
+%\subsection{Optimization}
+%\begin{itemize}
+ %   \item Blockwise vs Full
+  %  \item Distillation
+   % \item Criterias to spawn a new module
+    %\item How to init new blocks ?
+%\end{itemize}
+
+
+
+\subsection{Using Index Collapse to our advantage}
+\begin{itemize}
+    \item Start with a high number of embeddings. 
+    \item When replaying, reorder and compress the codebook! Underuse of embeddings is not a bad thing for compression --> less bits per items
+\end{itemize}
 
 
 %           BUFFER INDEX UPDATE
@@ -383,28 +425,28 @@ With this motivation, we wish to adapt RS to a multi-level settings. There a a f
 \begin{algorithm2e}[H]\small
 \SetAlgoLined
   \DontPrintSemicolon
-    \KwIn{Memory $\mathcal{M}$ with capacity $C$, sample $x$}
+    \KwIn{Memory $\mathcal{M}$ with capacity $C$ (bytes), sample $x$}
     
-    \,\,\,\texttt{\% Calculate number of uncompressed samples buffer can store} \\
+    %\,\,\,\texttt{\% Number of uncompressed samples buffer can store} \\
     $N_{reg}$ = $\frac{C}{\textst{BYTES}(x)}$
     
-    \,\,\,\texttt{\% Calculate probability of adding incoming datapoint} \\
+    %\,\,\,\texttt{\% Calculate probability of adding x} \\
     
-    capacity = $\max$(\ $N_{reg}$, \textst{CURRENT SAMPLE AMT}($\mathcal{M}$)\ ) 
+    capacity = $\max$(\ $N_{reg}$, \textst{NUM SAMPLES }($\mathcal{M}$)\ ) 
     
-    \,\,\,\texttt{\% Calculate probability of adding incoming datapoint} \\
+    %\,\,\,\texttt{\% Probability of adding x} \\
+     \,\,\,\texttt{\% Calculate probability of adding x} \\
     add $\sim \mathcal{B}(\frac{\text{capacity}}{\text{SAMPLE AMT SEEN SO FAR}})$
     
     \,\,
     \If{add}
     {
-        $hid_x$, $block_{id}$ = \textst{Find Compact Representation}($x$, $AE$, $d_{th}$) \\
-        space missing =  \text{BYTES}($hid_x$) - \textst{FREE SPACE}($\mathcal{M}$)
-        
-        \,\,\,\texttt{\% Note: implementation is much faster but same idea} \\
-        \While {\text{space missing}}{
-            \textst{DELETE RANDOM POINT}($\mathcal{M}$) \\
-            space missing =  \text{BYTES}($hid_x$) - \textst{FREE SPACE}($\mathcal{M}$)
+        $hid_x$, $block_{id}$ = \textst{AdaCompress}($x$, $AE$, $d_{th}$) \\
+       % empty space =  \text{BYTES}($hid_x$) - \textst{FREE SPACE}($\mathcal{M}$)
+      %  \,\,\,\texttt{\% Note: implementation is much faster but same idea} \\
+        \While {\text{BYTES}($hid_x$) - \textst{FREE SPACE}($\mathcal{M}$) $> 0$}{
+            \textst{DELETE RANDOM}($\mathcal{M}$) \\
+         %   empty space \gets  \text{BYTES}($hid_x$) - \textst{FREE SPACE}($\mathcal{M}$)
         }
         
     }
@@ -417,41 +459,6 @@ With this motivation, we wish to adapt RS to a multi-level settings. There a a f
 \end{algorithm2e}
 \end{minipage}
 \end{minipage}
-
-%          End of Algorithms Section 
-% ------------------------------------------------------
-
-
-\subsection{Architectural}
-\begin{itemize}
-    \item Define a VQVAE block
-    \item Describe the Modular Stacking 
-    \item Tensor Quantization ! vs vector
-\end{itemize}
-
-\subsection{Representation used for LiDAR}
-\begin{itemize}
-    \item describe padding for rotational equivariance
-\end{itemize}
-
-\subsection{Optimization}
-\begin{itemize}
-    \item Blockwise vs Full
-    \item Distillation
-    \item Criterias to spawn a new module
-    \item How to init new blocks ?
-\end{itemize}
-
-
-
-\subsection{Using Index Collapse to our advantage}
-\begin{itemize}
-    \item Start with a high number of embeddings. 
-    \item When replaying, reorder and compress the codebook! Underuse of embeddings is not a bad thing for compression --> less bits per items
-\end{itemize}
-
-\subsection{What about resampling unused codebook vectors?}
-
 % ---------------------------------------------------------
 %                      Experiments
 % ---------------------------------------------------------
@@ -463,23 +470,27 @@ We evaluate the efficacy of the proposed methods on a suite of canonical and new
 \label{sec:exp_details}
 
 
-\paragraph{Supervised Continual Learning}
+\paragraph{Supervised Continual Learning} Although CL has been studied in generative modeling \citep{lesort2018generative,ramapuram2017lifelong,Zhai2019LifelongGC} and reinforcement learning \citep{kirkpatrick2017overcoming,fernando2017pathnet,riemer2018learning}, supervised learning is still the standard for evaluation. Specifically, incremental image classification is used to study CF under different scenarios. In this setting, a new task consist of new image classes that classifier must learn while not forgetting the previous ones. 
 
+Multiple CL scenarios have been studied thus far, but the design chose of the utmost importance is the \textit{test-time task label assumption}. It is much easier for a model to operate if the tasks are specified at test time. To ground this in a concrete example, we can think of a robot continually learning to grab new objects. In this setting, a new object represents a new task. If a human (or a oracle) is always helping the robot by informing it of the nature of the next object to grab, then the assumption of the task label at test time isn't a bad idea. In this case, the robot can learn different policies for each objects, which can greatly reduce interference and thus forgetting. However, if we are interested in a more autonomous model, that assumption should be relaxed. Naturally, the continual learning becomes more challenging. Both settings are useful for \textit{real-life} continual learning. Thus, they are both studied in Section \ref{sec:can_cl} under the \textit{shared-headed} (no task label given) and \textit{multi-head} (task label given) nomenclature.
 
-\paragraph{On the test-time task label assumption} Shared head rules, however multi-head (closer to multi-tasking) can be useful in e.g. robotics. We are so nice that we studied both settings.
+For this set of experiments, we will report accuracy, i.e. $\dfrac{1}{T} \sum_{i=1}^T R_{T,i}$, and forgetting, i.e. $\dfrac{1}{T-1} \sum_{i=1}^{T-1} \max(R_{:,i}) - R_{T,i}$
+with $R \in \mathbb{R}^{TxT}$ representing the accuracy matrix where $R_{i,j}$ is the test classification accuracy on task $j$ when task $i$ is completed.
+
 
 \paragraph{Baselines}
-Our first and foremost baseline for continual supervised learning is Experience Replay (ER). It consists of storing old data in a buffer to replay old memories. Due to its oversimplistic nature, this baseline was omitted in most continual learning papers. However, recent research made it clear that it is a much difficult to beat baseline and in some settings it is state-of-the-art \citep{chaudhry2019continual,aljundi2019online,aljundi2018Online} \todo{cite more?}. This is the most important baseline as our method is an add-on to ER. Thus, the difference in performance will inform us about the efficacy of SQM and A-SQM. Here is a list of the other baselines in the supervised learning experiment:
+Our first and foremost baseline for continual supervised learning is Experience Replay (ER). It consists of storing old data in a buffer to replay old memories. Due to its oversimplistic nature, this baseline was omitted in most continual learning papers. However, recent research made it clear that it is a much difficult to beat baseline and in some settings it is state-of-the-art \citep{chaudhry2019continual,aljundi2019online,aljundi2018Online} \todo{cite more?}. This is the most important baseline as our method is an add-on to ER. Thus, the difference in performance will inform us about the efficacy of SQM and A-SQM. 
+
+Here is a list of the other baselines in the supervised learning experiment:
 \begin{itemize}
     \item \textbf{iid online} (upper-bound)
     considers training the model with a single-pass through the data on the same set of samples, but sampled iid.
     \item \textbf{iid offline} (upper-bound)
     evaluates the model using multiple passes through the data, sampled iid. We use 5 epochs in all the experiments for this baseline.
-    \item \textbf{fine-tuning} 
-    trains continuously upon arrival of new tasks without any forgetting avoidance strategy.
-    \item \textbf{iCarl} \cite{rebuffi2017icarl} introduced 
-    \item \textbf{GEM} \cite{lopez2017gradient} proposed a rehearsal methods that ... It gives similar results to the recent A-GEM \cite{chaudhry2018efficient}. 
-    \item  \textbf{MIR} \cite{aljundi2019online} proposed another rehearsal method that 
+    \item \textbf{fine-tuning} trains continuously upon arrival of new tasks without any forgetting avoidance strategy.
+    \item \textbf{iCarl} \citep{rebuffi2017icarl} incrementally classifies using a nearest neighbor algorithm, and prevents catastrophic forgetting by using an stored samples.
+    \item \textbf{GEM} \citep{lopez2017gradient} uses stored samples to avoid increasing the loss on previous task through constrained optimization. It has been shown to be a strong baseline in the online setting. It gives similar results to the recent A-GEM \cite{chaudhry2018efficient}.
+    \item  \textbf{MIR} \citep{aljundi2019online} controls the sampling of the replays. Specifically, they retrieve the samples which are most interfered, i.e. whose prediction will be most negatively impacted by the foreseen parameters update. We benchmark against their strongest instantiation of their method, ER-MIR.
 \end{itemize}
 
 Our other baselines are compression specific and are used in the supervised continual learning experiment as well as the LiDAR one. 
@@ -496,14 +507,14 @@ Our other baselines are compression specific and are used in the supervised cont
 \subsection{Canonical Evaluations for Supervised Continual Learning}
 \label{sec:can_cl}
 
-In this section, we study the proposed methodology under the standard evaluation protocol for CL: incremental image classification. The more challenging datasets which as been studied thus far are CIFAR (cite) and Mini Imagenet. The former as been studied 
+In this section, we study the proposed methodology under the standard evaluation protocol for CL: incremental image classification. The more challenging datasets which as been studied thus far are CIFAR (cite) and Mini-ImageNet. The former was initially studied \todo{cite} in the multi-head scenario under the 100 class version of the dataset, i.e. CIFAR-100. This experiment consists of 20 consecutive tasks, each adding five new classes. More recently, it was studied in the shared-head scenario under its 10 class version, CIFAR-10. This experiment consists of 5 tasks, each adding two new classes. In this work, we study both settings, keeping the numbers of classes and tasks identical to the literature just mentioned. Next, Mini-ImageNet was studied in \todo{cite}. It is of much higher resolution than CIFAR as well as more challenging. The current state of the supervised CL technology doesn't permit much learning in the shared-head scenario. Thus, only the multi-head setting will be studied for the Mini-ImageNet dataset. The scenario is identical to the CIFAR-100 experiment w.r.t number of tasks and of classes. 
 
 \todo[color=red]{insert preliminary results for continual supervised learning}
 \todo[color=orange]{Describe continual supervised learning results}
 \todo[color=yellow]{insert final results for continual supervised learning}
 
 
-%%%% CIFAR-10
+% %%%% CIFAR-10
 \begin{table}
     \centering
     \resizebox{\textwidth}{!}{%
@@ -518,8 +529,8 @@ In this section, we study the proposed methodology under the standard evaluation
     fine-tuning &$18.4\pm0.3$& $18.4\pm0.3$\\
      ER&$27.5\pm 1.2$ &$33.1\pm 1.7$\\
     ER-MIR \citep{aljundi2019online}& $29.8\pm1.1$ &$40.0 \pm 1.1$ \\
-    SQM (ours) & & $\bm{45.9 \pm 1.1}$\\
-    A-SQM (ours) & & $\bm{46.2 \pm 0.6}$ \\
+    SQM (ours) & $\bm{37.6 \pm 0.6}$ & $\bm{45.9 \pm 1.1}$\\
+    A-SQM (ours) & $\bm{37.8 \pm 0.7}$ & $\bm{46.2 \pm 0.6}$ \\
     % \multicolumn{4}{c}{}\\
 \end{tabular}
 &
@@ -527,15 +538,15 @@ In this section, we study the proposed methodology under the standard evaluation
 \multicolumn{2}{c}{Forgetting} \\\hline
      $M=20$ & $M=50$  \\\hline \hline
     N/A &N/A\\
-   N/A&N/A\\\noalign{\hrule height 1pt}
+  N/A&N/A\\\noalign{\hrule height 1pt}
         $73.5 \pm 1.7$ & $70.7 \pm 4.5$ \\
     $49 \pm2.4$& $40.6\pm1.1$\\
   $85.4 \pm 0.7$  & $85.4 \pm 0.7$\\
     $50.5\pm 2.4$&$35.4\pm 2.0$ \\
-    $50.2\pm 2.0$&$30.2 \pm 2.3$ \\
+    $50.2\pm 2.0$&$\bm{30.2 \pm 2.3}$ \\
     & $36.5 \pm 1.2$ \\
     & $36.1 \pm 0.6$ \\
-       %  \multicolumn{4}{c}{}\\
+      %  \multicolumn{4}{c}{}\\
 \end{tabular}
 \end{tabular}
 }
@@ -543,21 +554,49 @@ In this section, we study the proposed methodology under the standard evaluation
 \label{tab:cifar10_er_main}
 \end{table}
 
+%%%% CIFAR-10
+% \begin{table}
+%     \centering
+%     \resizebox{\textwidth}{!}{%
+%     \begin{tabular}{ll}
+%     \begin{tabular}{c c c}
+% &\multicolumn{2}{c}{Accuracy} \\\hline
+%                  & $M=25$ & $M=50$  \\\hline \hline
+%     ER&$26.1 \pm 0.4$ &$31.2 \pm 0.4$\\
+%     SQM (ours) & $40.5 += 0.7$ & $\bm{45.9 \pm 1.1}$\\
+%     A-SQM (ours) & $\bm{42.4 += 0.9}$ & $\bm{46.2 \pm 0.6}$ \\
+%     % \multicolumn{4}{c}{}\\
+% \end{tabular}
+% &
+% \begin{tabular}{c c}
+% \multicolumn{2}{c}{Forgetting} \\\hline
+%      $M=25$ & $M=50$  \\\hline \hline
+%     $59.4 \pm .50 $&$53.0 \pm 0.7$ \\
+%     $40.7 \pm 0.9$ & $36.5 \pm 1.2$ \\
+%     $39.3 \pm 1.1$& $36.1 \pm 0.6$ \\
+%       %  \multicolumn{4}{c}{}\\
+% \end{tabular}
+% \end{tabular}
+% }
+% \caption{Shared head results on disjoint CIFAR-10. Total memory per class $M$ measured in sample memory size. We report  (a) Accuracy, (b) Forgetting (lower is better). }
+% \label{tab:cifar10_er_main}
+% \end{table}
 
 
-\subsection{On convergence speed}
-\begin{itemize}
-    \item Can we justify the convergence speed by looking at the variance in the gradient ?
-    \item Can we show that deeper modules need more rehearsing ? We could look at the speed of drift in the reconstructions. 
-\end{itemize}
 
-\subsection{Reusing Encoder modules}
-\begin{itemize}
-    \item In Image classification for RGB data. See \url{https://arxiv.org/pdf/1803.06131.pdf}
-    \item 
-\end{itemize}
+%\subsection{On convergence speed}
+%\begin{itemize}
+ %   \item Can we justify the convergence speed by looking at the variance in the gradient ?
+  %  \item Can we show that deeper modules need more rehearsing ? We could look at the speed of drift in the reconstructions. 
+%\end{itemize}
 
-\subsection{Is ER enough to properly decorrelate temporally adjacents frames ?}
+%\subsection{Reusing Encoder modules}
+%\begin{itemize}
+ %   \item In Image classification for RGB data. See \url{https://arxiv.org/pdf/1803.06131.pdf}
+  %  \item 
+%\end{itemize}
+
+%\subsection{Is ER enough to properly decorrelate temporally adjacents frames ?}
 
 % ---------------------------------------------------------
 %                      Ablation Study
@@ -609,7 +648,7 @@ In this section, we study the proposed methodology under the standard evaluation
 %EB acknowledges funding from IVADO
 
 
-\bibliography{iclr2020_conference}
+\bibliography{ref}
 \bibliographystyle{iclr2020_conference}
 
 \appendix
